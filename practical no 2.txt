@@ -1,0 +1,78 @@
+import random
+
+class Node(object):
+    def __init__(self, key, level):
+        self.key = key
+        self.forward = [None] * (level + 1)
+
+class SkipList(object):
+    def __init__(self, max_lvl, p):
+        self.MAXLVL = max_lvl
+        self.p = p
+        self.header = self.create_node(self.MAXLVL, -1)
+        self.level = 0
+
+    def create_node(self, lvl, key):
+        n = Node(key, lvl)
+        return n
+
+    def random_level(self):
+        lvl = 0
+        while random.random() < self.p and lvl < self.MAXLVL - 1:
+            lvl += 1
+        return lvl
+
+    def insert_element(self, key):
+        update = [None] * (self.MAXLVL)
+        current = self.header
+
+        for i in range(self.level, -1, -1):
+            while current.forward[i] and current.forward[i].key < key:
+                current = current.forward[i]
+            update[i] = current
+
+        current = current.forward[0]
+
+        if current is None or current.key != key:
+            rlevel = self.random_level()
+
+            if rlevel > self.level:
+                for i in range(self.level + 1, rlevel + 1):
+                    update[i] = self.header
+                self.level = rlevel
+
+            n = self.create_node(rlevel, key)
+
+            for i in range(rlevel + 1):
+                n.forward[i] = update[i].forward[i]
+                update[i].forward[i] = n
+            print(f"Successfully inserted key {key}")
+
+    def display_list(self):
+        print("\n**** Skip List ****")
+        head = self.header
+        for level in range(self.level + 1):
+            print(f"Level {level}: ", end=" ")
+            node = head.forward[level]
+            while node is not None:
+                print(node.key, end=" ")
+                node = node.forward[level]
+            print("")
+
+def main():
+    lst = SkipList(4, 0.5)
+    lst.insert_element(3)
+    lst.insert_element(6)
+    lst.insert_element(7)
+    lst.insert_element(9)
+    lst.insert_element(12)
+    lst.insert_element(19)
+    lst.insert_element(17)
+    lst.insert_element(3)  # Duplicate insert
+    lst.insert_element(26)
+    lst.insert_element(21)
+    lst.insert_element(25)
+    lst.display_list()
+
+if __name__ == "__main__":
+    main()
